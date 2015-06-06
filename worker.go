@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"gopkg.in/yaml.v2"
+	"github.com/garyburd/redigo/redis"
 )
 
 // The task struct to run test
@@ -23,11 +24,11 @@ type Task struct {
 
 // Check if the worker can run task or not
 func checkRequirement() bool {
-	// TODO: check if docker is installed, now always return true
-	if true {
-		return true
-	} else {
+	_, err := exec.LookPath("docker")
+	if err != nil {
 		return false
+	} else {
+		return true
 	}
 }
 
@@ -162,6 +163,18 @@ func main() {
 		fmt.Println("Success to run " + dockerCommand)
 
 		// 5. Non-block read the log and exit_code file and put them into redis
+		c, err := redis.Dial("tcp", ":6379")
+		if err != nil {
+			panic(err)
+		}
+		defer c.Close()
+
+		c.Do("SET", "message1", "Hello World")
+		world, err := redis.String(c.Do("GET", "message1"))
+		if err != nil {
+			fmt.Println("key not found")
+		}
+		fmt.Println(world)
 
 		// 6. Delete the code
 		// TODO: make it a function to call
