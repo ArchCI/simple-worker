@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"gopkg.in/yaml.v2"
-	"github.com/garyburd/redigo/redis"
+	//"github.com/garyburd/redigo/redis"
 )
 
 // The task struct to run test
