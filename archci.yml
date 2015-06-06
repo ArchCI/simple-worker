@@ -1,0 +1,3 @@
+image: golang:1.4
+script:
+  - go test success_test.go

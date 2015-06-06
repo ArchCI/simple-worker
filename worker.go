@@ -2,32 +2,33 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"syscall"
+	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 // The task struct to run test
 type Task struct {
-	Id     float64 `json:"id"`
-	Commit string  `json:"commit"`
-	Public bool    `json:"is_public"`
-	Type   string  `json:"type"`
-	Project string `json:"project`
-	Url    string  `json:"url"`
+	Id      float64 `json:"id"`
+	Commit  string  `json:"commit"`
+	Public  bool    `json:"is_public"`
+	Type    string  `json:"type"`
+	Project string  `json:"project`
+	Url     string  `json:"url"`
 }
 
 // Check if the worker can run task or not
 func checkRequirement() bool {
-
 	// TODO: check if docker is installed, now always return true
 	if true {
 		return true
 	} else {
 		return false
 	}
-
 }
 
 // Execute the command to replace current process. TODO: not used yet
@@ -42,9 +43,31 @@ func Exec(args []string) {
 	}
 }
 
+type ArchciConfig struct {
+	Image  string   `yaml:"image"`
+	Script []string `yaml:"script"`
+}
+
+func ParseYaml(filename string) ArchciConfig {
+	// fmt.Println("Start parse yaml") // TODO: Make it as debug log
+
+	var archciConfig ArchciConfig
+	file, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	err = yaml.Unmarshal(file, &archciConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	// fmt.Printf("Value: %#v\n", config.Script[0])
+	return archciConfig
+}
+
 // The simple worker to pull task and run
 func main() {
-
 	fmt.Println("Start ArchCI simple worker")
 
 	// TODO: Support get parameter from command-line(server url, interval time and task number)
@@ -88,12 +111,16 @@ func main() {
 		fmt.Println("Success to clone the code")
 
 		// 2. Parse archci.yaml file for base image and test scripts
+		archciConfig := ParseYaml(task.Project + "/archci.yml")
+		// fmt.Printf("Value: %#v\n", archciConfig.Image)
+		dockerImage := archciConfig.Image
+		testScript := archciConfig.Script
+		fmt.Printf("Docker image: %#v\n", dockerImage)
+		fmt.Printf("Test script: %#v\n", testScript[0])
 
+		// 3. Docker run the base image and get the code into container to test
 
-
-
-
-		// Delete the code
+		// 4. Delete the code
 		// TODO: make it a function to call
 		rmCmd := exec.Command("rm", "-rf", task.Project)
 		rmOut, err := rmCmd.Output()
@@ -103,7 +130,6 @@ func main() {
 		}
 		fmt.Println(string(rmOut))
 		fmt.Println("Success to delete the code")
-
 
 		time.Sleep(100 * time.Second)
 	}
