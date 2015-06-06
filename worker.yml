@@ -2,3 +2,5 @@ server: http://archci.com/v1
 interval: 10
 tasks: 1
 data_dir: .
+cpu_limit: 0
+memory_limit: 0

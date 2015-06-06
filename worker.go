@@ -118,9 +118,34 @@ func main() {
 		fmt.Printf("Docker image: %#v\n", dockerImage)
 		fmt.Printf("Test script: %#v\n", testScript[0])
 
-		// 3. Docker run the base image and get the code into container to test
+		// 3. Generate archci.sh to "cd", combine user scipts and redirect STDOUT to file
 
-		// 4. Delete the code
+		/*
+		#!/bin/bash
+
+		set -e
+
+		cd /project
+
+		go test success_test.go
+
+		echo $? > exit_code.log
+		 */
+
+		// 4. Docker run the base image and put the code into container to test
+		// docker run -v $PWD:/project golan:1.4 /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log
+		dockerCommand := "docker run -v $PWD:/project " + archciConfig.Image + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
+		dockerCmd := exec.Command("sh", "-c", dockerCommand)
+		dockerOut, err := dockerCmd.Output()
+		if err != nil {
+			os.Exit(1)
+		}
+		fmt.Println(string(dockerOut))
+		fmt.Println("Success to run " + dockerCommand)
+
+		// 5. Non-block read the log and exit_code file and put them into redis
+
+		// 6. Delete the code
 		// TODO: make it a function to call
 		rmCmd := exec.Command("rm", "-rf", task.Project)
 		rmOut, err := rmCmd.Output()
@@ -130,6 +155,7 @@ func main() {
 		}
 		fmt.Println(string(rmOut))
 		fmt.Println("Success to delete the code")
+
 
 		time.Sleep(100 * time.Second)
 	}
