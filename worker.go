@@ -43,11 +43,13 @@ func Exec(args []string) {
 	}
 }
 
+// Struct for archci.yml
 type ArchciConfig struct {
 	Image  string   `yaml:"image"`
 	Script []string `yaml:"script"`
 }
 
+// Parse archci.yml to struct
 func ParseYaml(filename string) ArchciConfig {
 	// fmt.Println("Start parse yaml") // TODO: Make it as debug log
 
@@ -64,6 +66,23 @@ func ParseYaml(filename string) ArchciConfig {
 
 	// fmt.Printf("Value: %#v\n", config.Script[0])
 	return archciConfig
+}
+
+// Use archci.yml struct to generate archci.sh
+func GenerateArchciShellContent(archciConfig ArchciConfig) string {
+	// Add this and user's scripts into archci.sh
+	baseShellContent := `
+#!/bin/bash
+set -e
+cd /project
+`
+
+	archciShellContent := baseShellContent
+	for _, script := range archciConfig.Script {
+		archciShellContent += script + "\n"
+	}
+
+	return archciShellContent
 }
 
 // The simple worker to pull task and run
@@ -114,27 +133,26 @@ func main() {
 		archciConfig := ParseYaml(task.Project + "/archci.yml")
 		// fmt.Printf("Value: %#v\n", archciConfig.Image)
 		dockerImage := archciConfig.Image
-		testScript := archciConfig.Script
 		fmt.Printf("Docker image: %#v\n", dockerImage)
-		fmt.Printf("Test script: %#v\n", testScript[0])
 
 		// 3. Generate archci.sh to "cd", combine user scipts and redirect STDOUT to file, this file should put into user's root directory
-
-		/*
-		#!/bin/bash
-
-		set -e
-
-		cd /project
-
-		go test success_test.go
-
-		echo $? > exit_code.log
-		 */
+		// TODO: Make sure that the archci.sh is not conflict or just rm the user's one
+		archciShellContent := GenerateArchciShellContent(archciConfig)
+		archciShellFile, err2 := os.Create(task.Project + "/archci.sh") // TODO: Make it a constant
+		if err2 != nil {
+			panic(err2)
+		}
+		defer archciShellFile.Close()
+		_, err2 = archciShellFile.WriteString(archciShellContent)
+		if err2 != nil {
+			panic(err2)
+		}
+		archciShellFile.Sync()
+		fmt.Println("Success to create archci.sh")
 
 		// 4. Docker run the base image and put the code into container to test
 		// docker run --rm -v $PWD:/project golan:1.4 /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log
-		dockerCommand := "docker run --rm -v $PWD/" + task.Project + ":/project " + archciConfig.Image + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
+		dockerCommand := "docker run --rm -v $PWD/" + task.Project + ":/project " + dockerImage + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
 		dockerCmd := exec.Command("sh", "-c", dockerCommand)
 		dockerOut, err := dockerCmd.Output()
 		if err != nil {
@@ -156,7 +174,7 @@ func main() {
 		fmt.Println(string(rmOut))
 		fmt.Println("Success to delete the code")
 
-
+		// Sleep for next task
 		time.Sleep(100 * time.Second)
 	}
 
