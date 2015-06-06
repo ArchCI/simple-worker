@@ -2,9 +2,9 @@
 
 ## Introduction
 
-Simple-worker is the easy-to-deploy worker to run continues integreation tests.
+Simple-worker is the easy-to-deploy worker to run continues integreation tasks for ArchCI.
 
-It pulls tasks from ArchCI service and run the test within docker containers. We can use any management tool for docker to control these task and it's much more efficient than Jenkins and TravisCI.
+It pulls tasks from ArchCI service and run the test within docker containers. We can use any docker management tool for our tasks and it's much more efficient than Jenkins or TravisCI.
 
 ## Install
 
@@ -31,4 +31,4 @@ Simply running the binary will start the agent to get task to test. You can setu
 
 ArchCI relies on docker to run the tests. Make sure that docker daemon is running on your server.
 
-Or you can run simple-worker with `docker run -d --net=host archci/simple-work`.
+Or you can run simple-worker within container by `docker run -d --net=host archci/simple-work`.
