@@ -138,7 +138,7 @@ func main() {
 		// 3. Generate archci.sh to "cd", combine user scipts and redirect STDOUT to file, this file should put into user's root directory
 		// TODO: Make sure that the archci.sh is not conflict or just rm the user's one
 		archciShellContent := GenerateArchciShellContent(archciConfig)
-		archciShellFile, err2 := os.Create(task.Project + "/archci.sh") // TODO: Make it a constant
+		archciShellFile, err2 := os.OpenFile(task.Project+"/archci.sh", os.O_RDWR|os.O_CREATE|os.O_EXCL, 0755) // TODO: Make it a constant
 		if err2 != nil {
 			panic(err2)
 		}
