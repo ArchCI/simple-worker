@@ -153,8 +153,8 @@ func main() {
 
 		// 4. Docker run the base image and put the code into container to test
 		// docker run --rm -v $PWD:/project golan:1.4 /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log
-		cpuLimit := " -c 2 "
-		memoryLimit := " -m 100m "
+		cpuLimit := "" // " -c 2 "
+		memoryLimit := "" // " -m 100m "
 		dockerCommand := "docker run --rm" + cpuLimit + memoryLimit + "-v $PWD/" + task.Project + ":/project " + dockerImage + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
 		dockerCmd := exec.Command("sh", "-c", dockerCommand)
 		dockerOut, err := dockerCmd.Output()
@@ -165,6 +165,7 @@ func main() {
 		fmt.Println("Success to run " + dockerCommand)
 
 		// 5. Non-block read the log and exit_code file and put them into redis
+		/*
 		c, err := redis.Dial("tcp", ":6379")
 		if err != nil {
 			panic(err)
@@ -177,6 +178,7 @@ func main() {
 			fmt.Println("key not found")
 		}
 		fmt.Println(world)
+		*/
 
 		// 6. Delete the code
 		// TODO: make it a function to call
@@ -190,7 +192,8 @@ func main() {
 		fmt.Println("Success to delete the code")
 
 		// Sleep for next task
-		time.Sleep(100 * time.Second)
+		fmt.Println("Sleep 60 seconds for next task")
+		time.Sleep(60 * time.Second)
 	}
 
 	fmt.Println("Simple worker exists")
