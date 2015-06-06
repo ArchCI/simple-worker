@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"time"
+	"os"
+	"os/exec"
+	"syscall"
 )
 
 // The task struct to run test
@@ -11,6 +14,7 @@ type Task struct {
 	Commit string  `json:"commit"`
 	Public bool    `json:"is_public"`
 	Type   string  `json:"type"`
+	Project string `json:"project`
 	Url    string  `json:"url"`
 }
 
@@ -24,6 +28,18 @@ func checkRequirement() bool {
 		return false
 	}
 
+}
+
+// Execute the command to replace current process. TODO: not used yet
+func Exec(args []string) {
+	path, err := exec.LookPath(args[0])
+	if err != nil {
+		os.Exit(1)
+	}
+	err = syscall.Exec(path, args, os.Environ())
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
 // The simple worker to pull task and run
@@ -45,7 +61,7 @@ func main() {
 
 		// HTTP request to get task array
 		// TODO: change to http://archci.com/tasks?number=1
-		task := Task{Id: 123, Commit: "commit", Public: true, Type: "github", Url: "https"}
+		task := Task{Id: 123, Commit: "commit", Public: true, Type: "github", Project: "test-project", Url: "https://github.com/tobegit3hub/test-project.git"}
 		tasks := []Task{task}
 
 		// If no task, sleep and wait for next
@@ -57,8 +73,39 @@ func main() {
 
 		// Get the task and run test
 		task = tasks[0]
-		fmt.Println(task.Id)
+		fmt.Println(task.Project)
 
+		// 1. Clone the code in specified directory
+		// TODO: support user defined directory, avoid the name conflict
+		// TODO: Support other command than "git clone"
+		cloneCmd := exec.Command("git", "clone", task.Url)
+		cloneOut, err := cloneCmd.Output()
+		if err != nil {
+			// TODO: Don't be so easy to exit
+			os.Exit(1)
+		}
+		fmt.Println(string(cloneOut)) // Nothing to output if success
+		fmt.Println("Success to clone the code")
+
+		// 2. Parse archci.yaml file for base image and test scripts
+
+
+
+
+
+		// Delete the code
+		// TODO: make it a function to call
+		rmCmd := exec.Command("rm", "-rf", task.Project)
+		rmOut, err := rmCmd.Output()
+		if err != nil {
+			// TODO: Don't be so easy to exit
+			os.Exit(1)
+		}
+		fmt.Println(string(rmOut))
+		fmt.Println("Success to delete the code")
+
+
+		time.Sleep(100 * time.Second)
 	}
 
 	fmt.Println("Simple worker exists")
