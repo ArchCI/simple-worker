@@ -118,7 +118,7 @@ func main() {
 		fmt.Printf("Docker image: %#v\n", dockerImage)
 		fmt.Printf("Test script: %#v\n", testScript[0])
 
-		// 3. Generate archci.sh to "cd", combine user scipts and redirect STDOUT to file
+		// 3. Generate archci.sh to "cd", combine user scipts and redirect STDOUT to file, this file should put into user's root directory
 
 		/*
 		#!/bin/bash
@@ -133,8 +133,8 @@ func main() {
 		 */
 
 		// 4. Docker run the base image and put the code into container to test
-		// docker run -v $PWD:/project golan:1.4 /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log
-		dockerCommand := "docker run -v $PWD:/project " + archciConfig.Image + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
+		// docker run --rm -v $PWD:/project golan:1.4 /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log
+		dockerCommand := "docker run --rm -v $PWD/" + task.Project + ":/project " + archciConfig.Image + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
 		dockerCmd := exec.Command("sh", "-c", dockerCommand)
 		dockerOut, err := dockerCmd.Output()
 		if err != nil {
