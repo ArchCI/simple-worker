@@ -71,8 +71,7 @@ func ParseYaml(filename string) ArchciConfig {
 // Use archci.yml struct to generate archci.sh
 func GenerateArchciShellContent(archciConfig ArchciConfig) string {
 	// Add this and user's scripts into archci.sh
-	baseShellContent := `
-#!/bin/bash
+	baseShellContent := `#!/bin/bash
 set -e
 cd /project
 `
@@ -148,6 +147,7 @@ func main() {
 			panic(err2)
 		}
 		archciShellFile.Sync()
+		archciShellFile.Close()
 		fmt.Println("Success to create archci.sh")
 
 		// 4. Docker run the base image and put the code into container to test
