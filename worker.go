@@ -155,7 +155,7 @@ func main() {
 		// docker run --rm -v $PWD:/project golan:1.4 /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log
 		cpuLimit := "" // " -c 2 "
 		memoryLimit := "" // " -m 100m "
-		dockerCommand := "docker run --rm" + cpuLimit + memoryLimit + "-v $PWD/" + task.Project + ":/project " + dockerImage + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
+		dockerCommand := "docker run --rm " + cpuLimit + memoryLimit + "-v $PWD/" + task.Project + ":/project " + dockerImage + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
 		dockerCmd := exec.Command("sh", "-c", dockerCommand)
 		dockerOut, err := dockerCmd.Output()
 		if err != nil {
