@@ -1,0 +1,3 @@
+server: http://archci.com/v1
+interval: 10
+tasks: 1
