@@ -11,6 +11,8 @@ import (
 	"gopkg.in/yaml.v2"
 	//"github.com/garyburd/redigo/redis"
 	log "github.com/Sirupsen/logrus"
+
+	"github.com/ArchCI/simple-worker/fileutil"
 )
 
 // The task struct to run test
@@ -25,6 +27,7 @@ type Task struct {
 
 // Check if the worker can run task or not
 func checkRequirement() bool {
+	// TODO: it should not work for mac os but docker may be installed
 	_, err := exec.LookPath("docker")
 	if err != nil {
 		return false
@@ -167,20 +170,7 @@ func main() {
 		fmt.Println("Success to run " + dockerCommand)
 
 		// 5. Non-block read the log and exit_code file and put them into redis
-		/*
-		c, err := redis.Dial("tcp", ":6379")
-		if err != nil {
-			panic(err)
-		}
-		defer c.Close()
-
-		c.Do("SET", "message1", "Hello World")
-		world, err := redis.String(c.Do("GET", "message1"))
-		if err != nil {
-			fmt.Println("key not found")
-		}
-		fmt.Println(world)
-		*/
+		fileutil.NonblockReadFile("docker.log");
 
 		// 6. Delete the code
 		// TODO: make it a function to call
