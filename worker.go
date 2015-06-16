@@ -5,8 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 	"time"
+
+	"github.com/gorilla/http"
 
 	"gopkg.in/yaml.v2"
 	//"github.com/garyburd/redigo/redis"
@@ -89,9 +92,16 @@ cd /project
 	return archciShellContent
 }
 
+func PostString(url string, data string) {
+	if err := http.Post(url, strings.NewReader(data)); err != nil {
+		log.Fatal("could not post")
+	}
+}
+
 // The simple worker to pull task and run
 func main() {
 	fmt.Println("Start ArchCI simple worker")
+
 	log.Info("Start simple-worker")
 
 	// TODO: Support get parameter from command-line(server url, interval time and task number)
@@ -158,7 +168,7 @@ func main() {
 
 		// 4. Docker run the base image and put the code into container to test
 		// docker run --rm -v $PWD:/project golan:1.4 /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log
-		cpuLimit := "" // " -c 2 "
+		cpuLimit := ""    // " -c 2 "
 		memoryLimit := "" // " -m 100m "
 		dockerCommand := "docker run --rm " + cpuLimit + memoryLimit + "-v $PWD/" + task.Project + ":/project " + dockerImage + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
 		dockerCmd := exec.Command("sh", "-c", dockerCommand)
@@ -170,7 +180,8 @@ func main() {
 		fmt.Println("Success to run " + dockerCommand)
 
 		// 5. Non-block read the log and exit_code file and put them into redis
-		fileutil.NonblockReadFile("docker.log");
+		fileutil.NonblockReadFile("docker.log")
+		// PostString("http://127.0.0.1:8080/v1/account", "my log one")
 
 		// 6. Delete the code
 		// TODO: make it a function to call
