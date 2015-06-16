@@ -10,6 +10,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 	//"github.com/garyburd/redigo/redis"
+	log "github.com/Sirupsen/logrus"
 )
 
 // The task struct to run test
@@ -88,6 +89,7 @@ cd /project
 // The simple worker to pull task and run
 func main() {
 	fmt.Println("Start ArchCI simple worker")
+	log.Info("Start simple-worker")
 
 	// TODO: Support get parameter from command-line(server url, interval time and task number)
 
