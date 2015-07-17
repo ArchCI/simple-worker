@@ -1,0 +1,7 @@
+127.0.0.1:6379> hgetall 123
+1) "0"
+2) "ok  \tcommand-line-arguments\t0.001s"
+3) "current"
+4) "0"
+5) "all"
+6) "1"

@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"syscall"
+
+	"github.com/ArchCI/simple-worker/redisutil"
 )
 
 func NonblockReadFile(filename string) {
@@ -42,4 +44,27 @@ func NonblockReadFile(filename string) {
 
 	}
 
+}
+
+func WriteFileToRedis(buildId int64, logfile string) bool {
+
+	logs := []string{}
+
+	file, err := os.Open(logfile)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		// fmt.Println(scanner.Text())
+		logs = append(logs, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
+
+	return redisutil.WriteLogsToRedis(buildId, logs)
 }

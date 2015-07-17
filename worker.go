@@ -20,7 +20,7 @@ import (
 
 // The task struct to run test
 type Task struct {
-	Id      float64 `json:"id"`
+	Id      int64 `json:"id"`
 	Commit  string  `json:"commit"`
 	Public  bool    `json:"is_public"`
 	Type    string  `json:"type"`
@@ -118,7 +118,7 @@ func main() {
 
 		// HTTP request to get task array
 		// TODO: change to http://archci.com/tasks?number=1
-		task := Task{Id: 123, Commit: "commit", Public: true, Type: "github", Project: "test-project", Url: "https://github.com/tobegit3hub/test-project.git"}
+		task := Task{Id: int64(123), Commit: "commit", Public: true, Type: "github", Project: "test-project", Url: "https://github.com/tobegit3hub/test-project.git"}
 		tasks := []Task{task}
 
 		// If no task, sleep and wait for next
@@ -180,7 +180,8 @@ func main() {
 		fmt.Println("Success to run " + dockerCommand)
 
 		// 5. Non-block read the log and exit_code file and put them into redis
-		fileutil.NonblockReadFile("docker.log")
+		//fileutil.NonblockReadFile("docker.log")
+		fileutil.WriteFileToRedis(task.Id, "docker.log")
 		// PostString("http://127.0.0.1:8080/v1/account", "my log one")
 
 		// 6. Delete the code

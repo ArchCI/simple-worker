@@ -2,7 +2,7 @@ simple-worker
 worker
 
 # Temporary files
-~
+*~
 
 # For Idea
 simple-worker.iml

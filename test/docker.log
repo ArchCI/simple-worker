@@ -1,0 +1,21 @@
+Unable to find image 'golang:1.4' locally
+1.4: Pulling from golang
+902b87aaaec9: Already exists
+9a61b6b1315e: Already exists
+1ff9f26f09fb: Already exists
+607e965985c1: Already exists
+0f5121dd42a6: Already exists
+8d38711ccc0d: Already exists
+8ddc08289e1a: Already exists
+d86979befb72: Already exists
+b279b4aae826: Already exists
+63e9d2557cd7: Already exists
+8fb45e60e014: Already exists
+141b650c3281: Already exists
+69c177f0c117: Already exists
+124e2127157f: Already exists
+124e2127157f: Already exists
+golang:1.4: The image you are pulling has been verified. Important: image verification is a tech preview feature and should not be relied on to provide security.
+Digest: sha256:9095708afbb328e32c238f407fd8604422dca08854e2233057047e0cfac4329c
+Status: Downloaded newer image for golang:1.4
+ok  	command-line-arguments	0.001s
