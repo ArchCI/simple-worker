@@ -36,6 +36,8 @@ func WriteLogsToRedis(buildId int64, logs []string) bool{
 
 	index := 0
 
+	c.Do(HSET_COMMAND, buildId, "finish", false)
+
 	//Set one build's logs in one hash
 	for _, log := range logs {
 		fmt.Println(log)
@@ -47,7 +49,7 @@ func WriteLogsToRedis(buildId int64, logs []string) bool{
 		index++
 	}
 
-	c.Do(HSET_COMMAND, buildId, "all", index)
+	c.Do(HSET_COMMAND, buildId, "finish", true)
 
 	return true
 }
