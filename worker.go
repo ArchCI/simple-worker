@@ -16,9 +16,11 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/ArchCI/simple-worker/fileutil"
+	"github.com/ArchCI/simple-worker/dbutil"
 )
 
 // The task struct to run test
+/*
 type Task struct {
 	Id      int64 `json:"id"`
 	Commit  string  `json:"commit"`
@@ -27,6 +29,7 @@ type Task struct {
 	Project string  `json:"project`
 	Url     string  `json:"url"`
 }
+*/
 
 // Check if the worker can run task or not
 func checkRequirement() bool {
@@ -104,6 +107,9 @@ func main() {
 
 	log.Info("Start simple-worker")
 
+	build := dbutil.GetBuildToTest();
+	fmt.Println("Build the project " + build.ProjectName)
+
 	// TODO: Support get parameter from command-line(server url, interval time and task number)
 
 	// Exit if it doesn't meet the requirement
@@ -116,36 +122,43 @@ func main() {
 	// Loop to pull task and run test
 	for {
 
+		fmt.Println("Start while loop")
+
 		// HTTP request to get task array
-		// TODO: change to http://archci.com/tasks?number=1
-		task := Task{Id: int64(123), Commit: "commit", Public: true, Type: "github", Project: "test-project", Url: "https://github.com/tobegit3hub/test-project.git"}
-		tasks := []Task{task}
+		// TODO(tobe): change to http://archci.com/tasks?number=1
+		// TODO(tobe): remove task to use build
+		//task := Task{Id: int64(123), Commit: "commit", Public: true, Type: "github", Project: "test-project", Url: "https://github.com/tobegit3hub/test-project.git"}
+		//tasks := []Task{task}
+
 
 		// If no task, sleep and wait for next
-		if len(tasks) == 0 {
-			fmt.Println("Sleep 5 seconds then pull task again")
-			time.Sleep(5 * time.Second)
-			continue
-		}
+		//if len(tasks) == 0 {
+		//	fmt.Println("Sleep 5 seconds then pull task again")
+		//	time.Sleep(5 * time.Second)
+		//	continue
+		//}
 
 		// Get the task and run test
-		task = tasks[0]
-		fmt.Println(task.Project)
+		//task = tasks[0]
+		//fmt.Println(task.Project)
 
 		// 1. Clone the code in specified directory
 		// TODO: support user defined directory, avoid the name conflict
 		// TODO: Support other command than "git clone"
-		cloneCmd := exec.Command("git", "clone", task.Url)
+		cloneCmd := exec.Command("git", "clone", build.RepoUrl)
+
 		cloneOut, err := cloneCmd.Output()
 		if err != nil {
 			// TODO: Don't be so easy to exit
+			fmt.Println("Error to run clone command")
 			os.Exit(1)
 		}
 		fmt.Println(string(cloneOut)) // Nothing to output if success
 		fmt.Println("Success to clone the code")
 
 		// 2. Parse archci.yaml file for base image and test scripts
-		archciConfig := ParseYaml(task.Project + "/archci.yml")
+		archciConfig := ParseYaml(build.ProjectName + "/archci.yml")
+
 		// fmt.Printf("Value: %#v\n", archciConfig.Image)
 		dockerImage := archciConfig.Image
 		fmt.Printf("Docker image: %#v\n", dockerImage)
@@ -153,7 +166,8 @@ func main() {
 		// 3. Generate archci.sh to "cd", combine user scipts and redirect STDOUT to file, this file should put into user's root directory
 		// TODO: Make sure that the archci.sh is not conflict or just rm the user's one
 		archciShellContent := GenerateArchciShellContent(archciConfig)
-		archciShellFile, err2 := os.OpenFile(task.Project+"/archci.sh", os.O_RDWR|os.O_CREATE|os.O_EXCL, 0755) // TODO: Make it a constant
+		archciShellFile, err2 := os.OpenFile(build.ProjectName+"/archci.sh", os.O_RDWR|os.O_CREATE|os.O_EXCL, 0755) // TODO: Make it a constant
+
 		if err2 != nil {
 			panic(err2)
 		}
@@ -170,7 +184,8 @@ func main() {
 		// docker run --rm -v $PWD:/project golan:1.4 /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log
 		cpuLimit := ""    // " -c 2 "
 		memoryLimit := "" // " -m 100m "
-		dockerCommand := "docker run --rm " + cpuLimit + memoryLimit + "-v $PWD/" + task.Project + ":/project " + dockerImage + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
+		dockerCommand := "docker run --rm " + cpuLimit + memoryLimit + "-v $PWD/" + build.ProjectName + ":/project " + dockerImage + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
+
 		dockerCmd := exec.Command("sh", "-c", dockerCommand)
 		dockerOut, err := dockerCmd.Output()
 		if err != nil {
@@ -181,12 +196,12 @@ func main() {
 
 		// 5. Non-block read the log and exit_code file and put them into redis
 		//fileutil.NonblockReadFile("docker.log")
-		fileutil.WriteFileToRedis(task.Id, "docker.log")
+		fileutil.WriteFileToRedis(build.Id, "docker.log")
 		// PostString("http://127.0.0.1:8080/v1/account", "my log one")
 
 		// 6. Delete the code
 		// TODO: make it a function to call
-		rmCmd := exec.Command("rm", "-rf", task.Project)
+		rmCmd := exec.Command("rm", "-rf", build.ProjectName)
 		rmOut, err := rmCmd.Output()
 		if err != nil {
 			// TODO: Don't be so easy to exit
