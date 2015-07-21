@@ -12,24 +12,11 @@ import (
 	"github.com/gorilla/http"
 
 	"gopkg.in/yaml.v2"
-	//"github.com/garyburd/redigo/redis"
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/ArchCI/simple-worker/fileutil"
 	"github.com/ArchCI/simple-worker/dbutil"
 )
-
-// The task struct to run test
-/*
-type Task struct {
-	Id      int64 `json:"id"`
-	Commit  string  `json:"commit"`
-	Public  bool    `json:"is_public"`
-	Type    string  `json:"type"`
-	Project string  `json:"project`
-	Url     string  `json:"url"`
-}
-*/
 
 // Check if the worker can run task or not
 func checkRequirement() bool {
@@ -108,6 +95,7 @@ func main() {
 	log.Info("Start simple-worker")
 
 	build := dbutil.GetBuildToTest();
+	//build := models.Build{Id:id, ProjectName: projectName, RepoUrl: repoUrl, Branch: branch}
 	fmt.Println("Build the project " + build.ProjectName)
 
 	// TODO: Support get parameter from command-line(server url, interval time and task number)
@@ -157,7 +145,7 @@ func main() {
 		fmt.Println("Success to clone the code")
 
 		// 2. Parse archci.yaml file for base image and test scripts
-		archciConfig := ParseYaml(build.ProjectName + "/archci.yml")
+		archciConfig := ParseYaml(build.ProjectName + "/.archci.yml")
 
 		// fmt.Printf("Value: %#v\n", archciConfig.Image)
 		dockerImage := archciConfig.Image
