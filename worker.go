@@ -14,8 +14,12 @@ import (
 	"gopkg.in/yaml.v2"
 	log "github.com/Sirupsen/logrus"
 
+	"github.com/astaxie/beego/orm"
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/ArchCI/simple-worker/fileutil"
 	"github.com/ArchCI/simple-worker/dbutil"
+	"github.com/ArchCI/archci/models"
 )
 
 // Check if the worker can run task or not
@@ -197,6 +201,18 @@ func main() {
 		}
 		fmt.Println(string(rmOut))
 		fmt.Println("Success to delete the code")
+
+		// 7. Update update to finish the build
+		orm.RegisterDataBase("default", "mysql", "root:wawa316@/archci?charset=utf8")
+		orm.RegisterModel(new(models.Build))
+		o := orm.NewOrm()
+		build := models.Build{Id: build.Id}
+		if o.Read(&build) == nil {
+			build.Status = 1
+			if num, err := o.Update(&build); err == nil {
+				fmt.Println(num)
+			}
+		}
 
 		// Sleep for next task
 		fmt.Println("Sleep 60 seconds for next task")
