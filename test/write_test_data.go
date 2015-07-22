@@ -1,20 +1,17 @@
 package main
 
 import (
-       "fmt"
+	"fmt"
 
-       "github.com/ArchCI/simple-worker/fileutil"
+	"github.com/ArchCI/simple-worker/fileutil"
 )
-
 
 func main() {
 
-     fmt.Println("Start to write data")
+	fmt.Println("Start to write data")
 
+	fileutil.WriteFileToRedis(int64(123), "docker.log")
 
-     fileutil.WriteFileToRedis(int64(123), "docker.log")
-
-
-     fmt.Println("End")
+	fmt.Println("End")
 
 }

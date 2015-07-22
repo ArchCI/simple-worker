@@ -11,15 +11,15 @@ import (
 
 	"github.com/gorilla/http"
 
-	"gopkg.in/yaml.v2"
 	log "github.com/Sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
 
-	"github.com/ArchCI/simple-worker/fileutil"
-	"github.com/ArchCI/simple-worker/dbutil"
 	"github.com/ArchCI/archci/models"
+	"github.com/ArchCI/simple-worker/dbutil"
+	"github.com/ArchCI/simple-worker/fileutil"
 )
 
 // Check if the worker can run task or not
@@ -96,9 +96,17 @@ func PostString(url string, data string) {
 func main() {
 	fmt.Println("Start ArchCI simple worker")
 
+	dbutil.InitializeModels()
+
 	log.Info("Start simple-worker")
 
-	build := dbutil.GetBuildToTest();
+	//dbutil.UpdateBuildStatus(int64(2), 20);
+	build, err := dbutil.GetOneNotStartBuild()
+	if err != nil {
+		fmt.Println("No build to run test")
+		return
+	}
+
 	//build := models.Build{Id:id, ProjectName: projectName, RepoUrl: repoUrl, Branch: branch}
 	fmt.Println("Build the project " + build.ProjectName)
 
@@ -121,7 +129,6 @@ func main() {
 		// TODO(tobe): remove task to use build
 		//task := Task{Id: int64(123), Commit: "commit", Public: true, Type: "github", Project: "test-project", Url: "https://github.com/tobegit3hub/test-project.git"}
 		//tasks := []Task{task}
-
 
 		// If no task, sleep and wait for next
 		//if len(tasks) == 0 {

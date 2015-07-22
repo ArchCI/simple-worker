@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	SET_COMMAND = "SET"
+	SET_COMMAND  = "SET"
 	HSET_COMMAND = "HSET"
 )
 
@@ -26,7 +26,7 @@ func GetString(key string) string {
 	return value
 }
 
-func WriteLogsToRedis(buildId int64, logs []string) bool{
+func WriteLogsToRedis(buildId int64, logs []string) bool {
 
 	c, err := redis.Dial("tcp", ":6379")
 	if err != nil {
