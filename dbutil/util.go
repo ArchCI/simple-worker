@@ -2,6 +2,7 @@ package dbutil
 
 import (
 	"fmt"
+    "time"
 	//"database/sql"
 
 	"github.com/astaxie/beego/orm"
@@ -33,6 +34,7 @@ func GetOneNotStartBuild() (models.Build, error) {
 	return build, nil
 }
 
+// Update the status of the build
 func UpdateBuildStatus(buildId int64, status int) {
 	fmt.Println("Start to update status")
 	o := orm.NewOrm()
@@ -47,4 +49,22 @@ func UpdateBuildStatus(buildId int64, status int) {
 			fmt.Println(num)
 		}
 	}
+}
+
+// Insert worker record
+func AddWorker(workerId int64, ip string, lastUpdate time.Time, status int) {
+    o := orm.NewOrm()
+    var worker models.Worker
+    worker.Id = workerId
+    worker.Ip = ip
+    worker.LastUpdate = lastUpdate
+    worker.Status = status
+
+    id, err := o.Insert(&worker)
+    if err != nil {
+        fmt.Println(err)
+    } else {
+        fmt.Println(id)
+    }
+
 }

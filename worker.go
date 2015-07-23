@@ -8,6 +8,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"math/rand"
 
 	"github.com/gorilla/http"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/ArchCI/archci/models"
 	"github.com/ArchCI/simple-worker/dbutil"
 	"github.com/ArchCI/simple-worker/fileutil"
+	"github.com/ArchCI/simple-worker/iputil"
 )
 
 // Check if the worker can run task or not
@@ -99,6 +101,10 @@ func main() {
 	dbutil.InitializeModels()
 
 	log.Info("Start simple-worker")
+
+	// Record the worker in database
+	ip, _ := iputil.GetLocalIp()
+	dbutil.AddWorker(rand.Int63(), ip, time.Now(), models.WORKER_STATUS_BUSY)
 
 	//dbutil.UpdateBuildStatus(int64(2), 20);
 	build, err := dbutil.GetOneNotStartBuild()
