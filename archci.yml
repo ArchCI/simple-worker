@@ -1,4 +1,0 @@
-image: golang:1.4
-script:
-  - go get -v
-  - go test success_test.go

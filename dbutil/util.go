@@ -2,7 +2,7 @@ package dbutil
 
 import (
 	"fmt"
-    "time"
+	"time"
 	//"database/sql"
 
 	"github.com/astaxie/beego/orm"
@@ -53,18 +53,18 @@ func UpdateBuildStatus(buildId int64, status int) {
 
 // Insert worker record
 func AddWorker(workerId int64, ip string, lastUpdate time.Time, status int) {
-    o := orm.NewOrm()
-    var worker models.Worker
-    worker.Id = workerId
-    worker.Ip = ip
-    worker.LastUpdate = lastUpdate
-    worker.Status = status
+	o := orm.NewOrm()
+	var worker models.Worker
+	worker.Id = workerId
+	worker.Ip = ip
+	worker.LastUpdate = lastUpdate
+	worker.Status = status
 
-    id, err := o.Insert(&worker)
-    if err != nil {
-        fmt.Println(err)
-    } else {
-        fmt.Println(id)
-    }
+	id, err := o.Insert(&worker)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(id)
+	}
 
 }

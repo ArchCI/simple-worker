@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/exec"
 	"strings"
 	"syscall"
 	"time"
-	"math/rand"
 
 	"github.com/gorilla/http"
 
@@ -19,6 +19,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/ArchCI/archci/models"
+	"github.com/ArchCI/simple-worker/config"
 	"github.com/ArchCI/simple-worker/dbutil"
 	"github.com/ArchCI/simple-worker/fileutil"
 	"github.com/ArchCI/simple-worker/iputil"
@@ -47,17 +48,11 @@ func Exec(args []string) {
 	}
 }
 
-// Struct for archci.yml
-type ArchciConfig struct {
-	Image  string   `yaml:"image"`
-	Script []string `yaml:"script"`
-}
-
 // Parse archci.yml to struct
-func ParseYaml(filename string) ArchciConfig {
+func ParseArchciYaml(filename string) config.ArchciConfig {
 	// fmt.Println("Start parse yaml") // TODO: Make it as debug log
 
-	var archciConfig ArchciConfig
+	var archciConfig config.ArchciConfig
 	file, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic(err)
@@ -73,7 +68,7 @@ func ParseYaml(filename string) ArchciConfig {
 }
 
 // Use archci.yml struct to generate archci.sh
-func GenerateArchciShellContent(archciConfig ArchciConfig) string {
+func GenerateArchciShellContent(archciConfig config.ArchciConfig) string {
 	// Add this and user's scripts into archci.sh
 	baseShellContent := `#!/bin/bash
 set -e
@@ -162,7 +157,7 @@ func main() {
 		fmt.Println("Success to clone the code")
 
 		// 2. Parse archci.yaml file for base image and test scripts
-		archciConfig := ParseYaml(build.ProjectName + "/.archci.yml")
+		archciConfig := ParseArchciYaml(build.ProjectName + "/.archci.yml")
 
 		// fmt.Printf("Value: %#v\n", archciConfig.Image)
 		dockerImage := archciConfig.Image
