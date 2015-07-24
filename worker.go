@@ -108,7 +108,7 @@ func main() {
 		return
 	}
 
-	//build := models.Build{Id:id, ProjectName: projectName, RepoUrl: repoUrl, Branch: branch}
+	//build = models.Build{Id:1234, ProjectName: "test-project", RepoUrl: "https://github.com/tobegit3hub/test-project", Branch: "master"}
 	fmt.Println("Build the project " + build.ProjectName)
 
 	// TODO: Support get parameter from command-line(server url, interval time and task number)
@@ -219,6 +219,31 @@ func main() {
 			build.Status = 1
 			if num, err := o.Update(&build); err == nil {
 				fmt.Println(num)
+			}
+		}
+
+		exitCode := 0
+
+		// 8. Send POST to webhook
+		if exitCode == 0 {
+			for _, url := range archciConfig.Webhook.Success {
+				log.Debug("Trigger webhook to send POST to " + url)
+
+				err = http.Post(url, strings.NewReader("{build: success}"))
+				if err != nil {
+					log.Fatal("Could not send post request")
+					fmt.Println(err)
+				}
+			}
+		} else {
+			for _, url := range archciConfig.Webhook.Failure {
+				log.Debug("Trigger webhook to send POST to " + url)
+
+				err = http.Post(url, strings.NewReader("{build: failure}"))
+				if err != nil {
+					log.Fatal("Could not send post request")
+					fmt.Println(err)
+				}
 			}
 		}
 
