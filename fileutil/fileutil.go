@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/ArchCI/simple-worker/redisutil"
+	"io/ioutil"
 )
 
 func NonblockReadFile(filename string) {
@@ -67,4 +68,9 @@ func WriteFileToRedis(buildId int64, logfile string) bool {
 	}
 
 	return redisutil.WriteLogsToRedis(buildId, logs)
+}
+
+func ReadFile(fileName string) (string, error) {
+	data, err := ioutil.ReadFile(fileName)
+	return string(data), err
 }

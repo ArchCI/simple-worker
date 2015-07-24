@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -194,12 +195,7 @@ func main() {
 		fmt.Println(string(dockerOut))
 		fmt.Println("Success to run " + dockerCommand)
 
-		// 5. Non-block read the log and exit_code file and put them into redis
-		//fileutil.NonblockReadFile("docker.log")
-		fileutil.WriteFileToRedis(build.Id, "docker.log")
-		// PostString("http://127.0.0.1:8080/v1/account", "my log one")
-
-		// 6. Delete the code
+		// 5. Delete the code
 		// TODO: make it a function to call
 		rmCmd := exec.Command("rm", "-rf", build.ProjectName)
 		rmOut, err := rmCmd.Output()
@@ -210,7 +206,25 @@ func main() {
 		fmt.Println(string(rmOut))
 		fmt.Println("Success to delete the code")
 
-		// 7. Update update to finish the build
+		// 6. Non-block read the log and exit_code file and put them into redis
+		//fileutil.NonblockReadFile("docker.log")
+		fileutil.WriteFileToRedis(build.Id, "docker.log")
+		// PostString("http://127.0.0.1:8080/v1/account", "my log one")
+
+		// 7. Read exit code file
+		exitCodeFileContent, err9 := fileutil.ReadFile("exit_code.log")
+		if err9 != nil {
+			fmt.Println(err9)
+			panic(err9)
+		}
+		exitCode, _ := strconv.Atoi(strings.TrimSpace(exitCodeFileContent))
+		if exitCode == 0 {
+			fmt.Println("Exit code is 0")
+		} else {
+			fmt.Println("Exit code is not 0")
+		}
+
+		// 8. Update update to finish the build
 		orm.RegisterDataBase("default", "mysql", "root:wawa316@/archci?charset=utf8")
 		orm.RegisterModel(new(models.Build))
 		o := orm.NewOrm()
@@ -222,9 +236,7 @@ func main() {
 			}
 		}
 
-		exitCode := 0
-
-		// 8. Send POST to webhook
+		// 9. Send POST to webhook
 		if exitCode == 0 {
 			for _, url := range archciConfig.Webhook.Success {
 				log.Debug("Trigger webhook to send POST to " + url)
