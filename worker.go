@@ -6,9 +6,8 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
-	"strings"
 	"strconv"
-	"syscall"
+	"strings"
 	"time"
 
 	"github.com/gorilla/http"
@@ -16,7 +15,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
-	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/ArchCI/archci/models"
@@ -26,7 +24,7 @@ import (
 	"github.com/ArchCI/simple-worker/iputil"
 )
 
-// Check if the worker can run task or not
+// Check if the worker can run task or not.
 func checkRequirement() bool {
 	// TODO: it should not work for mac os but docker may be installed
 	_, err := exec.LookPath("docker")
@@ -37,21 +35,9 @@ func checkRequirement() bool {
 	}
 }
 
-// Execute the command to replace current process. TODO: not used yet
-func Exec(args []string) {
-	path, err := exec.LookPath(args[0])
-	if err != nil {
-		os.Exit(1)
-	}
-	err = syscall.Exec(path, args, os.Environ())
-	if err != nil {
-		os.Exit(1)
-	}
-}
-
-// Parse archci.yml to struct
+// Parse archci.yml to struct.
 func ParseArchciYaml(filename string) config.ArchciConfig {
-	// fmt.Println("Start parse yaml") // TODO: Make it as debug log
+	log.Debug("Start parse yaml")
 
 	var archciConfig config.ArchciConfig
 	file, err := ioutil.ReadFile(filename)
@@ -64,13 +50,11 @@ func ParseArchciYaml(filename string) config.ArchciConfig {
 		panic(err)
 	}
 
-	// fmt.Printf("Value: %#v\n", config.Script[0])
 	return archciConfig
 }
 
-// Use archci.yml struct to generate archci.sh
+// Use archci.yml struct to generate archci.sh.
 func GenerateArchciShellContent(archciConfig config.ArchciConfig) string {
-	// Add this and user's scripts into archci.sh
 	baseShellContent := `#!/bin/bash
 set -e
 cd /project
@@ -84,13 +68,7 @@ cd /project
 	return archciShellContent
 }
 
-func PostString(url string, data string) {
-	if err := http.Post(url, strings.NewReader(data)); err != nil {
-		log.Fatal("could not post")
-	}
-}
-
-// The simple worker to pull task and run
+// The simple worker to pull task and run.
 func main() {
 	fmt.Println("Start ArchCI simple worker")
 
@@ -98,50 +76,32 @@ func main() {
 
 	log.Info("Start simple-worker")
 
-	// Record the worker in database
+	// Record the worker in database.
 	ip, _ := iputil.GetLocalIp()
 	dbutil.AddWorker(rand.Int63(), ip, time.Now(), models.WORKER_STATUS_BUSY)
 
-	//dbutil.UpdateBuildStatus(int64(2), 20);
-	build, err := dbutil.GetOneNotStartBuild()
-	if err != nil {
-		fmt.Println("No build to run test")
-		return
-	}
-
-	//build = models.Build{Id:1234, ProjectName: "test-project", RepoUrl: "https://github.com/tobegit3hub/test-project", Branch: "master"}
-	fmt.Println("Build the project " + build.ProjectName)
-
-	// TODO: Support get parameter from command-line(server url, interval time and task number)
-
-	// Exit if it doesn't meet the requirement
+	// Exit if it doesn't meet the requirement.
 	if checkRequirement() == false {
 		// TODO: Add more info to install requirement
 		fmt.Println("Need some requirements, exit now")
 		return
 	}
 
-	// Loop to pull task and run test
+	// Loop to pull task and run test.
 	for {
 
 		fmt.Println("Start while loop")
 
-		// HTTP request to get task array
-		// TODO(tobe): change to http://archci.com/tasks?number=1
-		// TODO(tobe): remove task to use build
-		//task := Task{Id: int64(123), Commit: "commit", Public: true, Type: "github", Project: "test-project", Url: "https://github.com/tobegit3hub/test-project.git"}
-		//tasks := []Task{task}
+		build, err := dbutil.GetOneNotStartBuild()
+		if err != nil {
+			fmt.Println("No build to run test")
+			return
+		}
 
-		// If no task, sleep and wait for next
-		//if len(tasks) == 0 {
-		//	fmt.Println("Sleep 5 seconds then pull task again")
-		//	time.Sleep(5 * time.Second)
-		//	continue
-		//}
+		//build = models.Build{Id:1234, ProjectName: "test-project", RepoUrl: "https://github.com/tobegit3hub/test-project", Branch: "master"}
+		fmt.Println("Build the project " + build.ProjectName)
 
-		// Get the task and run test
-		//task = tasks[0]
-		//fmt.Println(task.Project)
+		dbutil.UpdateBuildStatus(build.Id, models.BUILD_STATUS_BUILDING)
 
 		// 1. Clone the code in specified directory
 		// TODO: support user defined directory, avoid the name conflict
@@ -152,17 +112,14 @@ func main() {
 		if err != nil {
 			// TODO: Don't be so easy to exit
 			fmt.Println("Error to run clone command")
-			os.Exit(1)
+			fmt.Println(string(cloneOut))
+			return
 		}
-		fmt.Println(string(cloneOut)) // Nothing to output if success
 		fmt.Println("Success to clone the code")
 
 		// 2. Parse archci.yaml file for base image and test scripts
 		archciConfig := ParseArchciYaml(build.ProjectName + "/.archci.yml")
-
-		// fmt.Printf("Value: %#v\n", archciConfig.Image)
 		dockerImage := archciConfig.Image
-		fmt.Printf("Docker image: %#v\n", dockerImage)
 
 		// 3. Generate archci.sh to "cd", combine user scipts and redirect STDOUT to file, this file should put into user's root directory
 		// TODO: Make sure that the archci.sh is not conflict or just rm the user's one
@@ -190,9 +147,9 @@ func main() {
 		dockerCmd := exec.Command("sh", "-c", dockerCommand)
 		dockerOut, err := dockerCmd.Output()
 		if err != nil {
+			fmt.Println(string(dockerOut))
 			os.Exit(1)
 		}
-		fmt.Println(string(dockerOut))
 		fmt.Println("Success to run " + dockerCommand)
 
 		// 5. Delete the code
@@ -201,17 +158,15 @@ func main() {
 		rmOut, err := rmCmd.Output()
 		if err != nil {
 			// TODO: Don't be so easy to exit
+			fmt.Println(string(rmOut))
 			os.Exit(1)
 		}
-		fmt.Println(string(rmOut))
 		fmt.Println("Success to delete the code")
 
 		// 6. Non-block read the log and exit_code file and put them into redis
-		//fileutil.NonblockReadFile("docker.log")
 		fileutil.WriteFileToRedis(build.Id, "docker.log")
-		// PostString("http://127.0.0.1:8080/v1/account", "my log one")
 
-		// 7. Read exit code file
+		// 7. Read exit code file and update build status
 		exitCodeFileContent, err9 := fileutil.ReadFile("exit_code.log")
 		if err9 != nil {
 			fmt.Println(err9)
@@ -220,20 +175,10 @@ func main() {
 		exitCode, _ := strconv.Atoi(strings.TrimSpace(exitCodeFileContent))
 		if exitCode == 0 {
 			fmt.Println("Exit code is 0")
+			dbutil.UpdateBuildStatus(build.Id, models.BUILD_STATUS_SUCCESS)
 		} else {
 			fmt.Println("Exit code is not 0")
-		}
-
-		// 8. Update update to finish the build
-		orm.RegisterDataBase("default", "mysql", "root:wawa316@/archci?charset=utf8")
-		orm.RegisterModel(new(models.Build))
-		o := orm.NewOrm()
-		build := models.Build{Id: build.Id}
-		if o.Read(&build) == nil {
-			build.Status = 1
-			if num, err := o.Update(&build); err == nil {
-				fmt.Println(num)
-			}
+			dbutil.UpdateBuildStatus(build.Id, models.BUILD_STATUS_FAIL)
 		}
 
 		// 9. Send POST to webhook

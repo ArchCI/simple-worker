@@ -1,6 +1,6 @@
 package config
 
-// Struct for .archci.yml file
+// The struct of .archci.yml file
 type ArchciConfig struct {
 	Image  string   `yaml:"image"`
 	Env    []string `yaml:env`
