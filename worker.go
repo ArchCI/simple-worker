@@ -35,9 +35,9 @@ func checkRequirement() bool {
 	}
 }
 
-// Parse archci.yml to struct.
+// Parse .archci.yml to struct.
 func ParseArchciYaml(filename string) config.ArchciConfig {
-	log.Debug("Start parse yaml")
+	log.Debug("Start to parse yaml")
 
 	var archciConfig config.ArchciConfig
 	file, err := ioutil.ReadFile(filename)
@@ -51,6 +51,24 @@ func ParseArchciYaml(filename string) config.ArchciConfig {
 	}
 
 	return archciConfig
+}
+
+// Parse worker.yml to struct.
+func ParseWorkerYaml(filename string) config.WorkerConfig {
+	log.Debug("Start to parse yaml")
+
+	var workerConfig config.WorkerConfig
+	file, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	err = yaml.Unmarshal(file, &workerConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	return workerConfig
 }
 
 // Use archci.yml struct to generate archci.sh.
@@ -75,6 +93,8 @@ func main() {
 	dbutil.InitializeModels()
 
 	log.Info("Start simple-worker")
+
+	workerConfig := ParseWorkerYaml("worker.yml")
 
 	// Record the worker in database.
 	ip, _ := iputil.GetLocalIp()
@@ -205,8 +225,8 @@ func main() {
 		}
 
 		// Sleep for next task
-		fmt.Println("Sleep 60 seconds for next task")
-		time.Sleep(60 * time.Second)
+		fmt.Println("Sleep for next task")
+		time.Sleep(time.Duration(workerConfig.Interval) * time.Second)
 	}
 
 	fmt.Println("Simple worker exists")

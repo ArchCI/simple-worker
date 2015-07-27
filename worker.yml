@@ -1,6 +1,17 @@
-server: http://archci.com/v1
-interval: 10
-tasks: 1
-data_dir: .
+# Show debug log or not.
+debug: true
+
+# The ArchCI server address.
+archci_server: http://127.0.0.1:10010
+
+# The interval to run next build.
+interval: 60
+
+# How manage tasks to run at the same time.
+concurrent_task: 1
+
+# Restrict the cpu of docker container.
 cpu_limit: 0
+
+# Restrict the memory of docker container.
 memory_limit: 0
