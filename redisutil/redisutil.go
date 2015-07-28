@@ -11,6 +11,7 @@ const (
 	HSET_COMMAND = "HSET"
 )
 
+// GetString performs get command to return string.
 func GetString(key string) string {
 	c, err := redis.Dial("tcp", ":6379")
 	if err != nil {
@@ -26,6 +27,7 @@ func GetString(key string) string {
 	return value
 }
 
+// WriteLogsToRedis take the array of log to write to redis.
 func WriteLogsToRedis(buildId int64, logs []string) bool {
 
 	c, err := redis.Dial("tcp", ":6379")

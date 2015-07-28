@@ -3,7 +3,6 @@ package dbutil
 import (
 	"fmt"
 	"time"
-	//"database/sql"
 
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
@@ -11,12 +10,13 @@ import (
 	"github.com/ArchCI/archci/models"
 )
 
+// InitializeModels registries the models of archci.
 func InitializeModels() {
 	orm.RegisterDataBase("default", "mysql", "root:wawa316@/archci?charset=utf8")
 	orm.RegisterModel(new(models.Build), new(models.Project), new(models.Worker))
 }
 
-// Get one build whose status is NOT_START
+// GetOneNotStartBuild takes one build whose status is NOT_START.
 func GetOneNotStartBuild() (models.Build, error) {
 	o := orm.NewOrm()
 
@@ -34,10 +34,11 @@ func GetOneNotStartBuild() (models.Build, error) {
 	return build, nil
 }
 
-// Update the status of the build
+// UpdateBuildStatus takes the status to update the build.
 func UpdateBuildStatus(buildId int64, status int) {
 	fmt.Println("Start to update status")
 	o := orm.NewOrm()
+
 	build := models.Build{Id: buildId}
 	err2 := o.Read(&build)
 	if err2 != nil {
@@ -51,9 +52,10 @@ func UpdateBuildStatus(buildId int64, status int) {
 	}
 }
 
-// Insert worker record
+// AddWorker inserts worker record in database.
 func AddWorker(workerId int64, ip string, lastUpdate time.Time, status int) {
 	o := orm.NewOrm()
+
 	var worker models.Worker
 	worker.Id = workerId
 	worker.Ip = ip
@@ -66,5 +68,4 @@ func AddWorker(workerId int64, ip string, lastUpdate time.Time, status int) {
 	} else {
 		fmt.Println(id)
 	}
-
 }

@@ -10,12 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gorilla/http"
-
 	log "github.com/Sirupsen/logrus"
-	"gopkg.in/yaml.v2"
-
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/http"
+	"gopkg.in/yaml.v2"
 
 	"github.com/ArchCI/archci/models"
 	"github.com/ArchCI/simple-worker/config"
@@ -24,8 +22,8 @@ import (
 	"github.com/ArchCI/simple-worker/iputil"
 )
 
-// Check if the worker can run task or not.
-func checkRequirement() bool {
+// CheckRequirement checks if it can run task or not.
+func CheckRequirement() bool {
 	// TODO: it should not work for mac os but docker may be installed
 	_, err := exec.LookPath("docker")
 	if err != nil {
@@ -35,7 +33,7 @@ func checkRequirement() bool {
 	}
 }
 
-// Parse .archci.yml to struct.
+// ParseArchciYaml parses .archci.yml to struct.
 func ParseArchciYaml(filename string) config.ArchciConfig {
 	log.Debug("Start to parse yaml")
 
@@ -53,7 +51,7 @@ func ParseArchciYaml(filename string) config.ArchciConfig {
 	return archciConfig
 }
 
-// Parse worker.yml to struct.
+// ParseWorkerYaml parses worker.yml to struct.
 func ParseWorkerYaml(filename string) config.WorkerConfig {
 	log.Debug("Start to parse yaml")
 
@@ -71,7 +69,7 @@ func ParseWorkerYaml(filename string) config.WorkerConfig {
 	return workerConfig
 }
 
-// Use archci.yml struct to generate archci.sh.
+// GenerateArchciShellContent uses archci.yml struct to generate archci.sh.
 func GenerateArchciShellContent(archciConfig config.ArchciConfig) string {
 	baseShellContent := `#!/bin/bash
 set -e
@@ -86,7 +84,7 @@ cd /project
 	return archciShellContent
 }
 
-// The simple worker to pull task and run.
+// Main function to get build and run test.
 func main() {
 	fmt.Println("Start ArchCI simple worker")
 

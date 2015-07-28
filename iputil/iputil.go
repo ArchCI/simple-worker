@@ -5,6 +5,7 @@ import (
 	"net"
 )
 
+// GetLocalIp returns the ip of eth0.
 func GetLocalIp() (string, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil {

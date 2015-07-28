@@ -4,14 +4,17 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"syscall"
 
 	"github.com/ArchCI/simple-worker/redisutil"
-	"io/ioutil"
 )
 
+// NonblockReadFile will non-block read the file.
 func NonblockReadFile(filename string) {
+	// TODO(tobe): this is not used and needs test.
+
 	// open input file
 	fi, err := os.Open(filename)
 	if err != nil {
@@ -47,6 +50,7 @@ func NonblockReadFile(filename string) {
 
 }
 
+// WriteFileToRedis takes string to write to redis.
 func WriteFileToRedis(buildId int64, logfile string) bool {
 
 	logs := []string{}
@@ -70,6 +74,7 @@ func WriteFileToRedis(buildId int64, logfile string) bool {
 	return redisutil.WriteLogsToRedis(buildId, logs)
 }
 
+// ReadFile take the path of file and return its content as string.
 func ReadFile(fileName string) (string, error) {
 	data, err := ioutil.ReadFile(fileName)
 	return string(data), err

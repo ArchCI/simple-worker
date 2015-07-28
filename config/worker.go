@@ -1,6 +1,6 @@
 package config
 
-// The struct of worker.yml file.
+// WorkerConfig represents the struct of worker.yml file.
 type WorkerConfig struct {
 	Debug          bool   `yaml:"debug"`
 	ArchciServer   string `yaml:"archci_server"`
