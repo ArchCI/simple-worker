@@ -4,12 +4,15 @@ MAINTAINER tobe tobeg3oolge@gmail.com
 RUN apt-get update -y
 
 RUN apt-get install -y git
-RUN apt-get install -y docker.io
 
-ADD . /go/simple-worker
-WORKDIR /go/simple-worker
+ADD rancher_docker.tar /
+
+ADD . /go/src/github.com/ArchCI/simple-worker
+WORKDIR /go/src/github.com/ArchCI/simple-worker
 
 RUN go get
 RUN go build
+
+VOLUME /var/lib/docker
 
 CMD /bin/bash
