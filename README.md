@@ -2,33 +2,16 @@
 
 ## Introduction
 
-Simple-worker is the easy-to-deploy worker to run continues integreation tasks for ArchCI.
-
-It pulls tasks from ArchCI service and run the test within docker containers. We can use any docker management tool for our tasks and it's much more efficient than Jenkins or TravisCI.
-
-## Install
-
-```
-go get github.com/ArchCI/simple-worker
-```
-
-Or build from source.
-
-```
-cd ArchCI/simple-worker/
-go build
-```
+Simple-worker is the easy-to-deploy worker to run tests in containers.
 
 ## Usage
 
 ```
-./simple-worker
+sudo docker run -d --net=host archci/simple-docker
 ```
 
-Simply running the binary will start the agent to get task to test. You can setup the configuration with `worker.yml`.
-
-## Docker container
-
-ArchCI relies on docker to run the tests. Make sure that docker daemon is running on your server.
-
-Or you can run simple-worker within container by `docker run -d --net=host archci/simple-work`.
+* `MYSQL_SERVER` is optional to set address of MySQL(DEFAULT: "")
+* `MYSQL_USERNAME` is optional to set MySQL username(DEFAULT: root)
+* `MYSQL_PASSWORD` is optional to set user's password(DEFAULT: root)
+* `MYSQL_DATABASE` is optional to set MySQL database(DEFAULT: mysql)
+* `REDIS_SERVER` is optional to set address of redis(DEFAULT: 127.0.0.1:6379)

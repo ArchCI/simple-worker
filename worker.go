@@ -99,7 +99,7 @@ func main() {
 	dbutil.AddWorker(rand.Int63(), ip, time.Now(), models.WORKER_STATUS_BUSY)
 
 	// Exit if it doesn't meet the requirement.
-	if checkRequirement() == false {
+	if CheckRequirement() == false {
 		// TODO: Add more info to install requirement
 		fmt.Println("Need some requirements, exit now")
 		return

@@ -2,6 +2,7 @@ package dbutil
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -10,10 +11,46 @@ import (
 	"github.com/ArchCI/archci/models"
 )
 
+const (
+	ENV_MYSQL_SERVER   = "MYSQL_SERVER"
+	ENV_MYSQL_USERNAME = "MYSQL_USERNAME"
+	ENV_MYSQL_PASSWORD = "MYSQL_PASSWORD"
+	ENV_MYSQL_DATABASE = "MYSQL_DATABASE"
+
+	MYSQL_DRIVER = "mysql"
+)
+
 // InitializeModels registries the models of archci.
 func InitializeModels() {
-	orm.RegisterDataBase("default", "mysql", "root:wawa316@/archci?charset=utf8")
+	// Registry database models.
 	orm.RegisterModel(new(models.Build), new(models.Project), new(models.Worker))
+
+	// Initialize database with environment variables.
+	server := ""
+	username := "root"
+	password := "root"
+	database := "mysql"
+
+	if os.Getenv(ENV_MYSQL_SERVER) != "" {
+		server = os.Getenv(ENV_MYSQL_SERVER)
+	}
+	if os.Getenv(ENV_MYSQL_USERNAME) != "" {
+		username = os.Getenv(ENV_MYSQL_USERNAME)
+	}
+	if os.Getenv(ENV_MYSQL_PASSWORD) != "" {
+		password = os.Getenv(ENV_MYSQL_PASSWORD)
+	}
+	if os.Getenv(ENV_MYSQL_DATABASE) != "" {
+		database = os.Getenv(ENV_MYSQL_DATABASE)
+	}
+
+	// The datasource looks like "root:root@/archci?charset=utf8".
+	DATASOURCE := username + ":" + password + "@" + server + "/" + database + "?charset=utf8"
+	fmt.Println("Connect to database with " + DATASOURCE)
+
+	orm.RegisterDriver(MYSQL_DRIVER, orm.DR_MySQL)
+	orm.RegisterDataBase("default", MYSQL_DRIVER, DATASOURCE, 30)
+	orm.RunSyncdb("default", false, true)
 }
 
 // GetOneNotStartBuild takes one build whose status is NOT_START.

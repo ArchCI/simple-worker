@@ -2,18 +2,30 @@ package redisutil
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/garyburd/redigo/redis"
 )
 
 const (
+	ENV_REDIS_SERVER = "REDIS_SERVER"
+
 	SET_COMMAND  = "SET"
 	HSET_COMMAND = "HSET"
 )
 
+// GetRedisServer reads the environment variable to return the address of redis.
+func GetRedisServer() string {
+	if os.Getenv(ENV_REDIS_SERVER) != "" {
+		return os.Getenv(ENV_REDIS_SERVER)
+	} else {
+		return "127.0.0.1:6379"
+	}
+}
+
 // GetString performs get command to return string.
 func GetString(key string) string {
-	c, err := redis.Dial("tcp", ":6379")
+	c, err := redis.Dial("tcp", GetRedisServer())
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +42,7 @@ func GetString(key string) string {
 // WriteLogsToRedis take the array of log to write to redis.
 func WriteLogsToRedis(buildId int64, logs []string) bool {
 
-	c, err := redis.Dial("tcp", ":6379")
+	c, err := redis.Dial("tcp", GetRedisServer())
 	if err != nil {
 		panic(err)
 	}
