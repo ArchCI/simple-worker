@@ -113,7 +113,10 @@ func main() {
 		build, err := dbutil.GetOneNotStartBuild()
 		if err != nil {
 			fmt.Println("No build to run test")
-			return
+
+			fmt.Println("Sleep for next task")
+			time.Sleep(time.Duration(workerConfig.Interval) * time.Second)
+			continue
 		}
 
 		//build = models.Build{Id:1234, ProjectName: "test-project", RepoUrl: "https://github.com/tobegit3hub/test-project", Branch: "master"}
