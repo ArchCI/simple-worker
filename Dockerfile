@@ -13,7 +13,7 @@ RUN go get github.com/tools/godep
 # Build simple-worker
 ADD . /go/src/github.com/ArchCI/simple-worker
 WORKDIR /go/src/github.com/ArchCI/simple-worker
-RUN godep go build
+RUN godep go build -ldflags "-X main.GitVersion `git rev-parse HEAD` -X main.BuildTime `date -u '+%Y-%m-%d_%I:%M:%S'`"
 
 VOLUME /var/lib/docker
 

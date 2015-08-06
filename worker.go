@@ -22,6 +22,12 @@ import (
 	"github.com/ArchCI/simple-worker/iputil"
 )
 
+// Build with -ldflags "-X main.GitVersion `git rev-parse HEAD` -X main.BuildTime `date -u '+%Y-%m-%d_%I:%M:%S'`"
+var (
+	GitVersion = "No git version provided"
+	BuildTime  = "No build time provided"
+)
+
 // CheckRequirement checks if it can run task or not.
 func CheckRequirement() bool {
 	// TODO: it should not work for mac os but docker may be installed
@@ -86,6 +92,11 @@ cd /project
 
 // Main function to get build and run test.
 func main() {
+
+	// Build with git version and build time. Print them when it starts.
+	fmt.Println("Git version: " + GitVersion)
+	fmt.Println("Build time: " + BuildTime)
+
 	fmt.Println("Start ArchCI simple worker")
 
 	dbutil.InitializeModels()
