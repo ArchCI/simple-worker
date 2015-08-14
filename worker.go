@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -139,12 +140,14 @@ func main() {
 		// TODO: support user defined directory, avoid the name conflict
 		// TODO: Support other command than "git clone"
 		cloneCmd := exec.Command("git", "clone", build.RepoUrl)
+		w := bytes.NewBuffer(nil)
+		cloneCmd.Stderr = w
 
-		cloneOut, err := cloneCmd.Output()
+		_, err = cloneCmd.Output()
 		if err != nil {
 			// TODO: Don't be so easy to exit
-			fmt.Println("Error to run clone command")
-			fmt.Println(string(cloneOut))
+			log.Warn("Error to run clone command" + err.Error())
+			log.Warn(string(w.Bytes()))
 			return
 		}
 		fmt.Println("Success to clone the code")
@@ -176,6 +179,7 @@ func main() {
 		memoryLimit := "" // " -m 100m "
 		dockerCommand := "docker run --rm " + cpuLimit + memoryLimit + "-v $PWD/" + build.ProjectName + ":/project " + dockerImage + " /project/archci.sh > docker.log 2>&1 ; echo $? > exit_code.log"
 
+		// TODO(tobe): Get stderr if it fails
 		dockerCmd := exec.Command("sh", "-c", dockerCommand)
 		dockerOut, err := dockerCmd.Output()
 		if err != nil {
